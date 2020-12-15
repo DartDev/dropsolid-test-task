@@ -1,0 +1,8 @@
+
+dropsolid_dependency_injection.rest_output_controller_showPhotos:
+  path: '/dropsolid/example/photos'
+  defaults:
+    _controller: '\Drupal\dropsolid_dependency_injection\Controller\RestOutputController::showPhotos'
+    _title: 'Dropsolid Dependency Injection Example: Photos'
+  requirements:
+    _permission: 'access content'

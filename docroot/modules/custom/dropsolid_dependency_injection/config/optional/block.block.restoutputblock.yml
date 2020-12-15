@@ -1,0 +1,19 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - dropsolid_dependency_injection
+  theme:
+    - bartik
+id: restoutputblock
+theme: bartik
+region: content
+weight: 0
+provider: null
+plugin: rest_output_block
+settings:
+  id: rest_output_block
+  label: 'Rest output block'
+  provider: dropsolid_dependency_injection
+  label_display: visible
+visibility: {  }
