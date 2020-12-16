@@ -1,0 +1,4 @@
+services:
+  dropsolid.rest_client:
+    class: Drupal\dropsolid_dependency_injection\RESTClient
+    arguments: ['@http_client', '@logger.factory', '@messenger', '@config.factory']

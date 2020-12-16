@@ -5,7 +5,7 @@ namespace Drupal\dropsolid_dependency_injection\Plugin\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\dropsolid_dependency_injection\RestConnectionInterface;
+use Drupal\dropsolid_dependency_injection\RESTClientInterface;
 
 /**
  * Provides a 'RestOutputBlock' block.
@@ -15,7 +15,50 @@ use Drupal\dropsolid_dependency_injection\RestConnectionInterface;
  *  admin_label = @Translation("Rest output block"),
  * )
  */
-class RestOutputBlock extends BlockBase {
+class RestOutputBlock extends BlockBase implements ContainerFactoryPluginInterface {
+
+  /**
+   * Album ID.
+   *
+   * @var int
+   */
+  const ALBUM_ID = '1';
+
+  /**
+   * REST client.
+   *
+   * @var \Drupal\dropsolid_dependency_injection\RESTClientInterface
+   */
+  protected $restClient;
+
+  /**
+   * Constructs a new RestOutputBlock instance.
+   *
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin_id for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\dropsolid_dependency_injection\RESTClientInterface $rest_client
+   *   The REST client.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, RESTClientInterface $rest_client) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->restClient = $rest_client;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('dropsolid.rest_client')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -24,29 +67,21 @@ class RestOutputBlock extends BlockBase {
     $build = [
       '#cache' => [
         'max-age' => 60,
-        'contexts' => ['url']
-      ]
+        'contexts' => ['url'],
+      ],
     ];
 
-    try {
-      $albumId = random_int(1, 20);
-      $response = \Drupal::httpClient()->request('GET', "https://jsonplaceholder.typicode.com/albums/$albumId/photos");
-      $data = $response->getBody()->getContents();
-      $decoded = json_decode($data);
-      if (!$decoded) {
-        throw new \Exception('Invalid data returned from API');
-      }
-    } catch (\Exception $e) {
-      return $build;
-    }
+    $photos = $this->restClient->getPhotos(static::ALBUM_ID);
 
-    foreach ($decoded as $item) {
-      $build['rest_output_block']['photos'][] = [
-        '#theme' => 'image',
-        '#uri' => $item->thumbnailUrl,
-        '#alt' => $item->title,
-        '#title' => $item->title
-      ];
+    if ($photos) {
+      foreach ($photos as $photo) {
+        $build['rest_output_block']['photos'][] = [
+          '#theme' => 'image',
+          '#uri' => $photo['thumbnailUrl'],
+          '#alt' => $photo['title'],
+          '#title' => $photo['title'],
+        ];
+      }
     }
 
     return $build;
