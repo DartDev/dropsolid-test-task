@@ -2,3 +2,9 @@ services:
   dropsolid.rest_client:
     class: Drupal\dropsolid_dependency_injection\RESTClient
     arguments: ['@http_client', '@logger.factory', '@messenger', '@config.factory']
+  dropsolid.manager.mail:
+    class: Drupal\dropsolid_dependency_injection\Mail\MailManagerDecorator
+    decorates: plugin.manager.mail
+    decoration_priority: 0
+    public: false
+    arguments: ['@dropsolid.manager.mail.inner', '@container.namespaces', '@cache.discovery', '@module_handler', '@config.factory', '@logger.factory', '@string_translation', '@renderer']
